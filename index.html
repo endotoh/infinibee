@@ -397,6 +397,17 @@ header h1 {
   padding: 0.1rem 0;
 }
 .hints-twoletter-list .found-hint { color: var(--muted); }
+.hints-more-btn {
+  margin-top: 0.75rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.hints-more-btn:hover { background: var(--found-bg); }
 
 /* Hint button icon */
 .btn-icon {
@@ -586,8 +597,14 @@ header h1 {
     <div class="hints-twoletter">
       <h3>Two letter list:</h3>
       <div class="hints-twoletter-list" id="hints-twoletter"></div>
-      <button id="btn-three-letter" style="margin-top: 0.75rem; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.8rem; font-size: 0.8rem; color: var(--muted); cursor: pointer;">Even more...</button>
+      <button id="btn-three-letter" class="hints-more-btn">Even more...</button>
       <div class="hints-twoletter-list" id="hints-threeletter" style="display: none; margin-top: 0.5rem;"></div>
+      <button id="btn-four-letter" class="hints-more-btn" style="display: none;">Even more (4!?!)</button>
+      <div class="hints-twoletter-list" id="hints-fourletter" style="display: none; margin-top: 0.5rem;"></div>
+      <button id="btn-five-letter" class="hints-more-btn" style="display: none;">Even more (5 — come on!?!?)</button>
+      <div class="hints-twoletter-list" id="hints-fiveletter" style="display: none; margin-top: 0.5rem;"></div>
+      <button id="btn-six-letter" class="hints-more-btn" style="display: none;">Even more (6 — seriously!?!?!?)</button>
+      <div class="hints-twoletter-list" id="hints-sixletter" style="display: none; margin-top: 0.5rem;"></div>
     </div>
   </div>
 </div>
@@ -1253,50 +1270,43 @@ header h1 {
 
     document.getElementById("hints-grid-container").innerHTML = html;
 
-    // Two letter list
-    const twos = {};
-    for (const w of words) {
-      const prefix = w.slice(0, 2).toUpperCase();
-      if (!twos[prefix]) twos[prefix] = { total: 0, found: 0 };
-      twos[prefix].total++;
-      if (found.has(w)) twos[prefix].found++;
-    }
-    const twosSorted = Object.keys(twos).sort();
-    const twoLetterEl = document.getElementById("hints-twoletter");
-    twoLetterEl.innerHTML = twosSorted.map(prefix => {
-      const t = twos[prefix];
-      if (t.found === t.total) {
-        return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
-      } else if (t.found > 0) {
-        return `<span>${prefix} - ${t.found}/${t.total}</span>`;
+    // Prefix lists (2, 3, 4, 5 letters)
+    function buildPrefixList(n, elId) {
+      const counts = {};
+      for (const w of words) {
+        if (w.length < n) continue;
+        const prefix = w.slice(0, n).toUpperCase();
+        if (!counts[prefix]) counts[prefix] = { total: 0, found: 0 };
+        counts[prefix].total++;
+        if (found.has(w)) counts[prefix].found++;
       }
-      return `<span>${prefix} - ${t.total}</span>`;
-    }).join("");
+      const sorted = Object.keys(counts).sort();
+      document.getElementById(elId).innerHTML = sorted.map(prefix => {
+        const t = counts[prefix];
+        if (t.found === t.total) {
+          return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
+        } else if (t.found > 0) {
+          return `<span>${prefix} - ${t.found}/${t.total}</span>`;
+        }
+        return `<span>${prefix} - ${t.total}</span>`;
+      }).join("");
+    }
 
-    // Three letter list
-    const threes = {};
-    for (const w of words) {
-      const prefix = w.slice(0, 3).toUpperCase();
-      if (!threes[prefix]) threes[prefix] = { total: 0, found: 0 };
-      threes[prefix].total++;
-      if (found.has(w)) threes[prefix].found++;
-    }
-    const threesSorted = Object.keys(threes).sort();
-    const threeLetterEl = document.getElementById("hints-threeletter");
-    threeLetterEl.innerHTML = threesSorted.map(prefix => {
-      const t = threes[prefix];
-      if (t.found === t.total) {
-        return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
-      } else if (t.found > 0) {
-        return `<span>${prefix} - ${t.found}/${t.total}</span>`;
-      }
-      return `<span>${prefix} - ${t.total}</span>`;
-    }).join("");
+    buildPrefixList(2, "hints-twoletter");
+    buildPrefixList(3, "hints-threeletter");
+    buildPrefixList(4, "hints-fourletter");
+    buildPrefixList(5, "hints-fiveletter");
+    buildPrefixList(6, "hints-sixletter");
 
     // Reset toggle state
-    threeLetterEl.style.display = "none";
-    const btn = document.getElementById("btn-three-letter");
-    btn.textContent = "Even more...";
+    document.getElementById("hints-threeletter").style.display = "none";
+    document.getElementById("hints-fourletter").style.display = "none";
+    document.getElementById("hints-fiveletter").style.display = "none";
+    document.getElementById("hints-sixletter").style.display = "none";
+    document.getElementById("btn-three-letter").style.display = "";
+    document.getElementById("btn-four-letter").style.display = "none";
+    document.getElementById("btn-five-letter").style.display = "none";
+    document.getElementById("btn-six-letter").style.display = "none";
 
     document.getElementById("hints-modal").classList.add("active");
   }
@@ -1340,15 +1350,23 @@ header h1 {
   document.getElementById("hints-close").addEventListener("click", () =>
     document.getElementById("hints-modal").classList.remove("active"));
   document.getElementById("btn-three-letter").addEventListener("click", () => {
-    const el = document.getElementById("hints-threeletter");
-    const btn = document.getElementById("btn-three-letter");
-    if (el.style.display === "none") {
-      el.style.display = "";
-      btn.textContent = "Less...";
-    } else {
-      el.style.display = "none";
-      btn.textContent = "Even more...";
-    }
+    document.getElementById("hints-threeletter").style.display = "";
+    document.getElementById("btn-three-letter").style.display = "none";
+    document.getElementById("btn-four-letter").style.display = "";
+  });
+  document.getElementById("btn-four-letter").addEventListener("click", () => {
+    document.getElementById("hints-fourletter").style.display = "";
+    document.getElementById("btn-four-letter").style.display = "none";
+    document.getElementById("btn-five-letter").style.display = "";
+  });
+  document.getElementById("btn-five-letter").addEventListener("click", () => {
+    document.getElementById("hints-fiveletter").style.display = "";
+    document.getElementById("btn-five-letter").style.display = "none";
+    document.getElementById("btn-six-letter").style.display = "";
+  });
+  document.getElementById("btn-six-letter").addEventListener("click", () => {
+    document.getElementById("hints-sixletter").style.display = "";
+    document.getElementById("btn-six-letter").style.display = "none";
   });
   document.getElementById("btn-giveup").addEventListener("click", showGiveUpModal);
   document.getElementById("btn-giveup-cancel").addEventListener("click", () =>
