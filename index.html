@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Infinibee</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #fff;
+  --text: #333;
+  --muted: #888;
+  --border: #ddd;
+  --hex-fill: #e6e6e6;
+  --hex-center: #f7da21;
+  --hex-hover: #d6d6d6;
+  --hex-center-hover: #e6c800;
+  --found-bg: #f0f0f0;
+  --toast-bg: #333;
+  --toast-text: #fff;
+  --bar-bg: #e0e0e0;
+  --bar-fill: #f7da21;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --text: #e0e0e0;
+    --muted: #888;
+    --border: #333;
+    --hex-fill: #333;
+    --hex-center: #b8960a;
+    --hex-hover: #444;
+    --hex-center-hover: #d4ad0e;
+    --found-bg: #252525;
+    --toast-bg: #e0e0e0;
+    --toast-text: #1a1a1a;
+    --bar-bg: #333;
+    --bar-fill: #b8960a;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+header {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.header-buttons button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.header-buttons button:hover { background: var(--found-bg); }
+
+#game { max-width: 500px; width: 100%; }
+
+/* Rank bar */
+.rank-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.rank-label { font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.rank-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bar-bg);
+  border-radius: 3px;
+  position: relative;
+}
+.rank-fill {
+  height: 100%;
+  background: var(--bar-fill);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.rank-dots {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
+.rank-dot {
+  position: absolute;
+  top: 50%;
+  width: 8px; height: 8px;
+  background: var(--bar-bg);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.rank-dot.passed { background: var(--bar-fill); }
+.score-display { font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+
+/* Input area */
+.input-area {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.current-word {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  min-height: 2.5rem;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.current-word .center-letter { color: #d4a00a; }
+
+/* Honeycomb */
+.hive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 1.5rem 0;
+  user-select: none;
+}
+.hive-row {
+  display: flex;
+  gap: 4px;
+}
+
+.hex-button {
+  width: 70px;
+  height: 70px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background: var(--hex-fill);
+  color: var(--text);
+  transition: background 0.1s;
+}
+.hex-button:hover { background: var(--hex-hover); }
+.hex-button.center {
+  background: var(--hex-center);
+  color: #000;
+}
+.hex-button.center:hover { background: var(--hex-center-hover); }
+
+/* Action buttons */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.actions button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  cursor: pointer;
+}
+.actions button:hover { background: var(--found-bg); }
+
+/* Found words */
+.found-words {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+.found-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.giveup-btn { }
+.found-word.missed {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.found-sort-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.found-sort-toggle button {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+.found-sort-toggle button.active {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--found-bg);
+}
+.found-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.found-word {
+  background: var(--found-bg);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.found-word.pangram {
+  font-weight: 700;
+  background: var(--hex-center);
+  color: #000;
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  top: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.toast {
+  background: var(--toast-bg);
+  color: var(--toast-text);
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: toast-in 0.2s ease, toast-out 0.3s ease 1.2s forwards;
+}
+@keyframes toast-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(-10px); } }
+
+/* Share modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+.modal h2 { margin-bottom: 1rem; }
+.modal p { margin-bottom: 1rem; font-size: 0.9rem; color: var(--muted); }
+.modal input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  background: var(--found-bg);
+  color: var(--text);
+}
+.modal button {
+  background: var(--hex-center);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+}
+
+/* Hints modal */
+.hints-modal .modal {
+  max-width: 480px;
+  text-align: left;
+  position: relative;
+}
+.hints-summary {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.hints-letters {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hints-letters .center-letter { color: #d4a00a; }
+.hints-stats {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.hints-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+.hints-grid th, .hints-grid td {
+  padding: 0.3rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.hints-grid th {
+  font-weight: 700;
+  border-bottom: 2px solid var(--border);
+}
+.hints-grid td:first-child, .hints-grid th:first-child {
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.hints-grid tr:last-child td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+}
+.hints-grid .found-hint { color: var(--muted); }
+.hints-grid .complete { color: var(--muted); }
+.hints-grid .complete::after, .hints-twoletter-list .complete::after {
+  content: " \2713";
+  color: #4caf50;
+}
+
+.hints-twoletter h3 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.hints-twoletter-list {
+  column-count: 3;
+  column-gap: 1rem;
+  font-size: 0.85rem;
+}
+.hints-twoletter-list span {
+  display: block;
+  padding: 0.1rem 0;
+}
+.hints-twoletter-list .found-hint { color: var(--muted); }
+
+/* Hint button icon */
+.btn-icon {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 1.1rem;
+}
+.btn-icon:hover { background: var(--found-bg); }
+
+/* Genius celebration */
+.genius-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+.genius-overlay.active { display: flex; }
+.genius-banner {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--hex-center);
+  text-shadow: 0 2px 20px rgba(247, 218, 33, 0.5);
+  animation: genius-pop 2s ease forwards;
+}
+@keyframes genius-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  30% { transform: scale(1.2); opacity: 1; }
+  50% { transform: scale(1); }
+  100% { opacity: 0; transform: scale(1) translateY(-30px); }
+}
+.confetti {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  z-index: 301;
+  pointer-events: none;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* History modal */
+.history-modal .modal {
+  max-width: 480px;
+  text-align: left;
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  background: var(--found-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.history-item:hover { background: var(--border); }
+.history-item.current { border: 2px solid var(--hex-center); }
+.history-letters {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+}
+.history-letters .center-letter { color: #d4a00a; }
+.history-meta {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.history-score {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.history-rank { font-size: 0.75rem; }
+.history-time { font-size: 0.75rem; }
+.history-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Infinibee</h1>
+  <div class="header-buttons">
+    <button id="btn-history" title="Previous games">History</button>
+    <button id="btn-share" title="Share this puzzle">Share</button>
+    <button id="btn-giveup" class="giveup-btn">Reveal</button>
+    <button id="btn-new">New Game</button>
+  </div>
+</header>
+
+<div id="game">
+  <div class="rank-bar">
+    <span class="rank-label" id="rank-label">Beginner</span>
+    <div class="rank-track">
+      <div class="rank-fill" id="rank-fill" style="width: 0%"></div>
+      <div class="rank-dots" id="rank-dots"></div>
+    </div>
+    <span class="score-display" id="score-display">0 / 0</span>
+  </div>
+
+  <div class="input-area">
+    <div class="current-word" id="current-word"></div>
+  </div>
+
+  <div class="hive" id="hive"></div>
+
+  <div class="actions">
+    <button id="btn-delete">Delete</button>
+    <button id="btn-hints" title="Hints">&#x1F4A1; Clues</button>
+    <button id="btn-shuffle">Shuffle</button>
+    <button id="btn-enter">Enter</button>
+  </div>
+
+  <div class="found-words">
+    <div class="found-header">
+      <span id="found-header">You have found 0 words</span>
+    </div>
+    <div class="found-sort-toggle">
+      <button id="sort-order" class="active">Order found</button>
+      <button id="sort-alpha">A-Z</button>
+    </div>
+    <div class="found-list" id="found-list"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+<div class="genius-overlay" id="genius-overlay">
+  <div class="genius-banner">GENIUS!</div>
+</div>
+
+<div class="modal-overlay history-modal" id="history-modal">
+  <div class="modal">
+    <button class="modal-close" id="history-close">&times;</button>
+    <h2>Previous Games</h2>
+    <div id="history-list" class="history-list"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="giveup-modal">
+  <div class="modal">
+    <h2>Are you sure?</h2>
+    <p>You're doing great! Keep trying — there are still words to find. If you reveal, all remaining answers will be shown.</p>
+    <div style="display: flex; gap: 0.75rem; justify-content: center;">
+      <button id="btn-giveup-cancel" style="background: var(--found-bg); color: var(--text);">Keep Playing</button>
+      <button id="btn-giveup-confirm" style="background: #c0392b; color: #fff;">Reveal</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hints-modal" id="hints-modal">
+  <div class="modal">
+    <button class="modal-close" id="hints-close">&times;</button>
+    <h2>Hints</h2>
+    <div class="hints-summary">
+      <div class="hints-letters" id="hints-letters"></div>
+      <div class="hints-stats" id="hints-stats"></div>
+    </div>
+    <div id="hints-grid-container"></div>
+    <div class="hints-twoletter">
+      <h3>Two letter list:</h3>
+      <div class="hints-twoletter-list" id="hints-twoletter"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="share-modal">
+  <div class="modal">
+    <h2>Share this puzzle</h2>
+    <p>Send this link to a friend so they can play the same game:</p>
+    <input type="text" id="share-url" readonly>
+    <br>
+    <button id="btn-copy-share">Copy Link</button>
+  </div>
+</div>
+
+<script src="words.js"></script>
+<script>
+(function() {
+  // --- Ranks ---
+  const RANKS = [
+    { name: "Beginner",    pct: 0 },
+    { name: "Good Start",  pct: 0.02 },
+    { name: "Moving Up",   pct: 0.05 },
+    { name: "Good",        pct: 0.08 },
+    { name: "Solid",       pct: 0.15 },
+    { name: "Nice",        pct: 0.25 },
+    { name: "Great",       pct: 0.40 },
+    { name: "Amazing",     pct: 0.50 },
+    { name: "Genius",      pct: 0.90 },
+  ];
+
+  // --- Seeded RNG (mulberry32) ---
+  function mulberry32(seed) {
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function hashString(s) {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) {
+      h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+    }
+    return h;
+  }
+
+  // --- Game state ---
+  let state = {
+    seed: null,
+    letters: [],       // 7 letters, index 0 = center
+    centerLetter: "",
+    outerLetters: [],
+    validWords: [],
+    maxScore: 0,
+    foundWords: [],
+    score: 0,
+    currentInput: "",
+    givenUp: false,
+  };
+
+  // --- Word lookup (Set for O(1)) ---
+  const WORD_SET = new Set(WORDS);
+
+  // --- Sort mode ---
+  let sortMode = "order"; // "order" or "alpha"
+
+  // --- localStorage persistence (24h expiry) ---
+  const STORAGE_PREFIX = "infinibee_";
+  const EXPIRY_MS = 24 * 60 * 60 * 1000;
+
+  function saveProgress() {
+    const data = {
+      foundWords: state.foundWords,
+      score: state.score,
+      maxScore: state.maxScore,
+      givenUp: state.givenUp,
+      letters: state.letters.slice(0, 7),
+      centerLetter: state.centerLetter,
+      ts: Date.now(),
+    };
+    try {
+      localStorage.setItem(STORAGE_PREFIX + state.seed, JSON.stringify(data));
+      cleanOldStorage();
+    } catch (e) {}
+  }
+
+  function loadProgress(seed) {
+    try {
+      const raw = localStorage.getItem(STORAGE_PREFIX + seed);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      if (Date.now() - data.ts > EXPIRY_MS) {
+        localStorage.removeItem(STORAGE_PREFIX + seed);
+        return null;
+      }
+      return data;
+    } catch (e) { return null; }
+  }
+
+  function cleanOldStorage() {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (!key.startsWith(STORAGE_PREFIX)) continue;
+        const raw = localStorage.getItem(key);
+        try {
+          const data = JSON.parse(raw);
+          if (Date.now() - data.ts > EXPIRY_MS) localStorage.removeItem(key);
+        } catch (e) { localStorage.removeItem(key); }
+      }
+    } catch (e) {}
+  }
+
+  function getAllGames() {
+    const games = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key.startsWith(STORAGE_PREFIX)) continue;
+        const seed = key.slice(STORAGE_PREFIX.length);
+        const raw = localStorage.getItem(key);
+        try {
+          const data = JSON.parse(raw);
+          if (Date.now() - data.ts > EXPIRY_MS) continue;
+          data.seed = seed;
+          games.push(data);
+        } catch (e) {}
+      }
+    } catch (e) {}
+    games.sort((a, b) => b.ts - a.ts);
+    return games;
+  }
+
+  function timeAgo(ts) {
+    const seconds = Math.floor((Date.now() - ts) / 1000);
+    if (seconds < 5) return "just now";
+    if (seconds < 60) return seconds + "s ago";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    const days = Math.floor(hours / 24);
+    return days + "d ago";
+  }
+
+  function getRankForPct(pct) {
+    let rank = RANKS[0];
+    for (const r of RANKS) {
+      if (pct >= r.pct) rank = r;
+    }
+    return rank.name;
+  }
+
+  function showHistoryModal() {
+    const games = getAllGames();
+    const listEl = document.getElementById("history-list");
+
+    if (games.length === 0) {
+      listEl.innerHTML = '<div class="history-empty">No games yet. Start playing!</div>';
+      document.getElementById("history-modal").classList.add("active");
+      return;
+    }
+
+    listEl.innerHTML = "";
+    for (const game of games) {
+      const item = document.createElement("div");
+      item.className = "history-item" + (String(game.seed) === String(state.seed) ? " current" : "");
+
+      const letters = game.letters || [];
+      const center = game.centerLetter || "";
+      const sorted = [...letters].sort();
+      const lettersHtml = sorted.map(l =>
+        l === center ? `<span class="center-letter">${l}</span>` : l
+      ).join(" ");
+
+      const pct = game.maxScore > 0 ? game.score / game.maxScore : 0;
+      const rank = getRankForPct(pct);
+      const geniusTarget = Math.ceil((game.maxScore || 0) * RANKS[RANKS.length - 1].pct);
+
+      item.innerHTML = `
+        <div>
+          <div class="history-letters">${lettersHtml}</div>
+          <div class="history-time">${timeAgo(game.ts)}</div>
+        </div>
+        <div class="history-meta">
+          <div class="history-score">${game.score} / ${geniusTarget}</div>
+          <div class="history-rank">${rank}${game.givenUp ? " (gave up)" : ""}</div>
+        </div>
+      `;
+
+      item.addEventListener("click", () => {
+        document.getElementById("history-modal").classList.remove("active");
+        const seed = isNaN(Number(game.seed)) ? game.seed : Number(game.seed);
+        initPuzzle(seed);
+      });
+
+      listEl.appendChild(item);
+    }
+
+    document.getElementById("history-modal").classList.add("active");
+  }
+
+  // --- Initialize puzzle from seed ---
+  function initPuzzle(seed) {
+    const rng = mulberry32(typeof seed === "number" ? seed : hashString(String(seed)));
+
+    // Pick a puzzle (7 sorted letters + center letter)
+    const puzzleIndex = Math.floor(rng() * PUZZLES.length);
+    const puzzle = PUZZLES[puzzleIndex];
+    const letters = puzzle.slice(0, 7).split("");
+    const centerLetter = puzzle[7];
+
+    // Shuffle outer letters
+    const outer = letters.filter(l => l !== centerLetter);
+    for (let i = outer.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [outer[i], outer[j]] = [outer[j], outer[i]];
+    }
+
+    // Find all valid words for this puzzle
+    const letterSet = new Set(letters);
+    const validWords = WORDS.filter(w => {
+      if (!w.includes(centerLetter)) return false;
+      for (const ch of w) {
+        if (!letterSet.has(ch)) return false;
+      }
+      return true;
+    });
+
+    // Calculate max score
+    let maxScore = 0;
+    for (const w of validWords) {
+      maxScore += scoreWord(w, letterSet);
+    }
+
+    state.seed = seed;
+    state.letters = [centerLetter, ...outer];
+    state.centerLetter = centerLetter;
+    state.outerLetters = outer;
+    state.validWords = validWords;
+    state.maxScore = maxScore;
+    state.foundWords = [];
+    state.score = 0;
+    state.currentInput = "";
+    state.givenUp = false;
+    geniusReached = false;
+
+    // Restore progress from localStorage
+    const saved = loadProgress(seed);
+    if (saved) {
+      // Only restore words that are valid for this puzzle
+      const validSet = new Set(validWords);
+      state.foundWords = saved.foundWords.filter(w => validSet.has(w));
+      state.score = 0;
+      for (const w of state.foundWords) {
+        state.score += scoreWord(w, letterSet);
+      }
+      state.givenUp = saved.givenUp || false;
+    }
+
+    // Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set("seed", seed);
+    history.replaceState(null, "", url);
+
+    render();
+    saveProgress();
+  }
+
+  function scoreWord(word, letterSet) {
+    if (word.length === 4) return 1;
+    const unique = new Set(word);
+    const isPangram = unique.size === 7 && [...unique].every(c => letterSet.has(c));
+    return word.length + (isPangram ? 7 : 0);
+  }
+
+  // --- Rendering ---
+  function render() {
+    renderHive();
+    renderInput();
+    renderScore();
+    renderFoundWords();
+  }
+
+  function renderHive() {
+    const hive = document.getElementById("hive");
+    // Layout: row of 2, row of 3 (center in middle), row of 2
+    const layout = [
+      [state.letters[1], state.letters[2]],
+      [state.letters[3], state.letters[0], state.letters[4]],
+      [state.letters[5], state.letters[6]],
+    ];
+    hive.innerHTML = "";
+    for (const row of layout) {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "hive-row";
+      for (const letter of row) {
+        const btn = document.createElement("button");
+        btn.className = "hex-button" + (letter === state.centerLetter ? " center" : "");
+        btn.textContent = letter;
+        btn.addEventListener("click", () => typeLetter(letter));
+        rowDiv.appendChild(btn);
+      }
+      hive.appendChild(rowDiv);
+    }
+  }
+
+  function renderInput() {
+    const el = document.getElementById("current-word");
+    if (!state.currentInput) {
+      el.innerHTML = '<span style="color: var(--muted)">Type or click</span>';
+      return;
+    }
+    el.innerHTML = state.currentInput.split("").map(ch =>
+      ch === state.centerLetter
+        ? `<span class="center-letter">${ch}</span>`
+        : ch
+    ).join("");
+  }
+
+  function renderScore() {
+    const pct = state.maxScore > 0 ? state.score / state.maxScore : 0;
+    const geniusTarget = Math.ceil(state.maxScore * RANKS[RANKS.length - 1].pct);
+    document.getElementById("score-display").textContent = state.score + " / " + geniusTarget;
+
+    // Find current rank
+    let currentRank = RANKS[0];
+    for (const r of RANKS) {
+      if (pct >= r.pct) currentRank = r;
+    }
+    document.getElementById("rank-label").textContent = currentRank.name;
+
+    // Celebrate genius
+    if (currentRank.name === "Genius" && !geniusReached) {
+      geniusReached = true;
+      setTimeout(celebrateGenius, 100);
+    }
+
+    // Fill bar (map pct to visual width)
+    const fillPct = Math.min(pct / RANKS[RANKS.length - 1].pct, 1) * 100;
+    document.getElementById("rank-fill").style.width = fillPct + "%";
+
+    // Dots
+    const dotsEl = document.getElementById("rank-dots");
+    dotsEl.innerHTML = "";
+    for (let i = 1; i < RANKS.length; i++) {
+      const dot = document.createElement("div");
+      dot.className = "rank-dot" + (pct >= RANKS[i].pct ? " passed" : "");
+      dot.style.left = (RANKS[i].pct / RANKS[RANKS.length - 1].pct * 100) + "%";
+      dot.title = RANKS[i].name + " (" + Math.round(RANKS[i].pct * 100) + "%)";
+      dotsEl.appendChild(dot);
+    }
+  }
+
+  function renderFoundWords() {
+    const header = document.getElementById("found-header");
+    const giveupBtn = document.getElementById("btn-giveup");
+    const list = document.getElementById("found-list");
+    list.innerHTML = "";
+
+    const foundSet = new Set(state.foundWords);
+
+    if (state.givenUp) {
+      header.textContent = `You found ${state.foundWords.length} of ${state.validWords.length} words`;
+      giveupBtn.style.display = "none";
+
+      const allWords = [...state.validWords].sort();
+      for (const w of allWords) {
+        const el = document.createElement("span");
+        const isPangram = new Set(w).size === 7;
+        const wasFound = foundSet.has(w);
+        let cls = "found-word";
+        if (isPangram) cls += " pangram";
+        if (!wasFound) cls += " missed";
+        el.className = cls;
+        el.textContent = w;
+        list.appendChild(el);
+      }
+    } else {
+      header.textContent = `You have found ${state.foundWords.length} word${state.foundWords.length !== 1 ? "s" : ""}`;
+      giveupBtn.style.display = "";
+
+      const words = sortMode === "alpha"
+        ? [...state.foundWords].sort()
+        : [...state.foundWords];
+      for (const w of words) {
+        const el = document.createElement("span");
+        const isPangram = new Set(w).size === 7;
+        el.className = "found-word" + (isPangram ? " pangram" : "");
+        el.textContent = w;
+        list.appendChild(el);
+      }
+    }
+
+    // Update sort toggle active state
+    document.getElementById("sort-order").className = sortMode === "order" ? "active" : "";
+    document.getElementById("sort-alpha").className = sortMode === "alpha" ? "active" : "";
+  }
+
+  // --- Game actions ---
+  function typeLetter(ch) {
+    state.currentInput += ch;
+    renderInput();
+  }
+
+  function deleteLetter() {
+    state.currentInput = state.currentInput.slice(0, -1);
+    renderInput();
+  }
+
+  function shuffleLetters() {
+    const outer = [...state.outerLetters];
+    for (let i = outer.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [outer[i], outer[j]] = [outer[j], outer[i]];
+    }
+    state.outerLetters = outer;
+    state.letters = [state.centerLetter, ...outer];
+    renderHive();
+  }
+
+  function submitWord() {
+    const word = state.currentInput.toLowerCase();
+    state.currentInput = "";
+
+    if (word.length < 4) {
+      showToast("Too short");
+      renderInput();
+      return;
+    }
+    if (!word.includes(state.centerLetter)) {
+      showToast("Missing center letter");
+      renderInput();
+      return;
+    }
+    const letterSet = new Set(state.letters);
+    for (const ch of word) {
+      if (!letterSet.has(ch)) {
+        showToast("Bad letters");
+        renderInput();
+        return;
+      }
+    }
+    if (state.foundWords.includes(word)) {
+      showToast("Already found");
+      renderInput();
+      return;
+    }
+    if (!WORD_SET.has(word)) {
+      showToast("Not in word list");
+      renderInput();
+      return;
+    }
+
+    // Valid!
+    state.foundWords.push(word);
+    const pts = scoreWord(word, letterSet);
+    state.score += pts;
+
+    const isPangram = new Set(word).size === 7;
+    if (isPangram) {
+      showToast("Pangram! +" + pts);
+    } else if (word.length === 4) {
+      showToast("+" + pts);
+    } else {
+      showToast("Nice! +" + pts);
+    }
+
+    saveProgress();
+    render();
+  }
+
+  function showGiveUpModal() {
+    document.getElementById("giveup-modal").classList.add("active");
+  }
+
+  function confirmGiveUp() {
+    document.getElementById("giveup-modal").classList.remove("active");
+    if (pendingNewGame) {
+      pendingNewGame = false;
+      const seed = Math.floor(Math.random() * 2147483647);
+      initPuzzle(seed);
+    } else {
+      state.givenUp = true;
+      saveProgress();
+      render();
+    }
+  }
+
+  function newGame() {
+    if (state.foundWords.length > 0 && !geniusReached && !state.givenUp) {
+      pendingNewGame = true;
+      document.getElementById("giveup-modal").classList.add("active");
+      return;
+    }
+    const seed = Math.floor(Math.random() * 2147483647);
+    initPuzzle(seed);
+  }
+  let pendingNewGame = false;
+
+  // --- Genius celebration ---
+  let geniusReached = false;
+
+  function celebrateGenius() {
+    const overlay = document.getElementById("genius-overlay");
+    overlay.classList.add("active");
+    setTimeout(() => overlay.classList.remove("active"), 2500);
+
+    // Confetti
+    const colors = ["#f7da21", "#e74c3c", "#3498db", "#2ecc71", "#9b59b6", "#e67e22"];
+    for (let i = 0; i < 60; i++) {
+      const conf = document.createElement("div");
+      conf.className = "confetti";
+      conf.style.left = Math.random() * 100 + "vw";
+      conf.style.top = "-10px";
+      conf.style.background = colors[Math.floor(Math.random() * colors.length)];
+      conf.style.borderRadius = Math.random() > 0.5 ? "50%" : "0";
+      conf.style.animationDuration = (2 + Math.random() * 2) + "s";
+      conf.style.animationDelay = Math.random() * 0.5 + "s";
+      const endX = (Math.random() - 0.5) * 200;
+      const endY = window.innerHeight + 20;
+      const rot = Math.random() * 720;
+      conf.style.animation = `confetti-fall ${2 + Math.random() * 2}s ease-out ${Math.random() * 0.5}s forwards`;
+      conf.animate([
+        { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+        { transform: `translate(${endX}px, ${endY}px) rotate(${rot}deg)`, opacity: 0 }
+      ], { duration: 2000 + Math.random() * 2000, delay: Math.random() * 500, fill: "forwards" });
+      document.body.appendChild(conf);
+      setTimeout(() => conf.remove(), 4000);
+    }
+  }
+
+  // --- Toast ---
+  function showToast(msg) {
+    const container = document.getElementById("toast-container");
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+
+  // --- Share ---
+  function showShareModal() {
+    const url = new URL(window.location);
+    url.searchParams.set("seed", state.seed);
+    document.getElementById("share-url").value = url.toString();
+    document.getElementById("share-modal").classList.add("active");
+  }
+
+  function hideShareModal(e) {
+    if (e.target === document.getElementById("share-modal")) {
+      document.getElementById("share-modal").classList.remove("active");
+    }
+  }
+
+  function copyShareUrl() {
+    const input = document.getElementById("share-url");
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast("Link copied!");
+      document.getElementById("share-modal").classList.remove("active");
+    });
+  }
+
+  // --- Hints ---
+  function showHintsModal() {
+    const found = new Set(state.foundWords);
+    const words = state.validWords;
+
+    // Build letter display
+    const lettersEl = document.getElementById("hints-letters");
+    const sorted = [...state.letters].sort();
+    lettersEl.innerHTML = sorted.map(l =>
+      l === state.centerLetter ? `<span class="center-letter">${l}</span>` : l
+    ).join(" ");
+
+    // Stats
+    document.getElementById("hints-stats").textContent =
+      `${words.length} words | ${state.maxScore} points`;
+
+    // Grid: rows = starting letter, cols = word length
+    const lengths = new Set();
+    const grid = {};
+    for (const w of words) {
+      const fl = w[0];
+      const len = w.length;
+      lengths.add(len);
+      if (!grid[fl]) grid[fl] = {};
+      if (!grid[fl][len]) grid[fl][len] = { total: 0, found: 0 };
+      grid[fl][len].total++;
+      if (found.has(w)) grid[fl][len].found++;
+    }
+
+    const sortedLengths = [...lengths].sort((a, b) => a - b);
+    const sortedLetters = Object.keys(grid).sort();
+
+    let html = '<table class="hints-grid"><thead><tr><th></th>';
+    for (const len of sortedLengths) html += `<th>${len}</th>`;
+    html += '<th>&Sigma;</th></tr></thead><tbody>';
+
+    for (const fl of sortedLetters) {
+      html += `<tr><td>${fl}</td>`;
+      let rowTotal = 0, rowFound = 0;
+      for (const len of sortedLengths) {
+        const cell = grid[fl][len];
+        if (cell) {
+          rowTotal += cell.total;
+          rowFound += cell.found;
+          if (cell.found === cell.total) {
+            html += `<td class="complete">${cell.found}/${cell.total}</td>`;
+          } else if (cell.found > 0) {
+            html += `<td>${cell.found}/${cell.total}</td>`;
+          } else {
+            html += `<td>${cell.total}</td>`;
+          }
+        } else {
+          html += '<td>-</td>';
+        }
+      }
+      if (rowFound === rowTotal && rowTotal > 0) {
+        html += `<td class="complete">${rowFound}/${rowTotal}</td>`;
+      } else if (rowFound > 0) {
+        html += `<td>${rowFound}/${rowTotal}</td>`;
+      } else {
+        html += `<td>${rowTotal}</td>`;
+      }
+      html += '</tr>';
+    }
+
+    // Totals row
+    html += '<tr><td>&Sigma;</td>';
+    let grandTotal = 0, grandFound = 0;
+    for (const len of sortedLengths) {
+      let colTotal = 0, colFound = 0;
+      for (const fl of sortedLetters) {
+        const cell = grid[fl]?.[len];
+        if (cell) { colTotal += cell.total; colFound += cell.found; }
+      }
+      grandTotal += colTotal;
+      grandFound += colFound;
+      if (colFound === colTotal && colTotal > 0) {
+        html += `<td class="complete">${colFound}/${colTotal}</td>`;
+      } else if (colFound > 0) {
+        html += `<td>${colFound}/${colTotal}</td>`;
+      } else {
+        html += `<td>${colTotal}</td>`;
+      }
+    }
+    if (grandFound === grandTotal && grandTotal > 0) {
+      html += `<td class="complete">${grandFound}/${grandTotal}</td>`;
+    } else if (grandFound > 0) {
+      html += `<td>${grandFound}/${grandTotal}</td>`;
+    } else {
+      html += `<td>${grandTotal}</td>`;
+    }
+    html += '</tr></tbody></table>';
+
+    document.getElementById("hints-grid-container").innerHTML = html;
+
+    // Two letter list
+    const twos = {};
+    for (const w of words) {
+      const prefix = w.slice(0, 2).toUpperCase();
+      if (!twos[prefix]) twos[prefix] = { total: 0, found: 0 };
+      twos[prefix].total++;
+      if (found.has(w)) twos[prefix].found++;
+    }
+    const twosSorted = Object.keys(twos).sort();
+    const twoLetterEl = document.getElementById("hints-twoletter");
+    twoLetterEl.innerHTML = twosSorted.map(prefix => {
+      const t = twos[prefix];
+      if (t.found === t.total) {
+        return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
+      } else if (t.found > 0) {
+        return `<span>${prefix} - ${t.found}/${t.total}</span>`;
+      }
+      return `<span>${prefix} - ${t.total}</span>`;
+    }).join("");
+
+    document.getElementById("hints-modal").classList.add("active");
+  }
+
+  function hideHintsModal(e) {
+    if (e.target === document.getElementById("hints-modal")) {
+      document.getElementById("hints-modal").classList.remove("active");
+    }
+  }
+
+  // --- Keyboard ---
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.getElementById("share-modal").classList.remove("active");
+      document.getElementById("hints-modal").classList.remove("active");
+      document.getElementById("giveup-modal").classList.remove("active");
+      document.getElementById("history-modal").classList.remove("active");
+      return;
+    }
+    if (document.getElementById("share-modal").classList.contains("active") ||
+        document.getElementById("hints-modal").classList.contains("active") ||
+        document.getElementById("giveup-modal").classList.contains("active") ||
+        document.getElementById("history-modal").classList.contains("active")) {
+      return;
+    }
+    if (e.key === "Enter") {
+      submitWord();
+    } else if (e.key === "Backspace") {
+      deleteLetter();
+    } else if (/^[a-zA-Z]$/.test(e.key)) {
+      typeLetter(e.key.toLowerCase());
+    }
+  });
+
+  // --- Button handlers ---
+  document.getElementById("btn-delete").addEventListener("click", deleteLetter);
+  document.getElementById("btn-shuffle").addEventListener("click", shuffleLetters);
+  document.getElementById("btn-enter").addEventListener("click", submitWord);
+  document.getElementById("btn-hints").addEventListener("click", showHintsModal);
+  document.getElementById("hints-modal").addEventListener("click", hideHintsModal);
+  document.getElementById("hints-close").addEventListener("click", () =>
+    document.getElementById("hints-modal").classList.remove("active"));
+  document.getElementById("btn-giveup").addEventListener("click", showGiveUpModal);
+  document.getElementById("btn-giveup-cancel").addEventListener("click", () => {
+    pendingNewGame = false;
+    document.getElementById("giveup-modal").classList.remove("active");
+  });
+  document.getElementById("btn-giveup-confirm").addEventListener("click", confirmGiveUp);
+  document.getElementById("giveup-modal").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("giveup-modal"))
+      document.getElementById("giveup-modal").classList.remove("active");
+  });
+  document.getElementById("sort-order").addEventListener("click", () => {
+    sortMode = "order"; renderFoundWords();
+  });
+  document.getElementById("sort-alpha").addEventListener("click", () => {
+    sortMode = "alpha"; renderFoundWords();
+  });
+  document.getElementById("btn-history").addEventListener("click", showHistoryModal);
+  document.getElementById("history-close").addEventListener("click", () =>
+    document.getElementById("history-modal").classList.remove("active"));
+  document.getElementById("history-modal").addEventListener("click", (e) => {
+    if (e.target === document.getElementById("history-modal"))
+      document.getElementById("history-modal").classList.remove("active");
+  });
+  document.getElementById("btn-new").addEventListener("click", newGame);
+  document.getElementById("btn-share").addEventListener("click", showShareModal);
+  document.getElementById("share-modal").addEventListener("click", hideShareModal);
+  document.getElementById("btn-copy-share").addEventListener("click", copyShareUrl);
+
+  // --- Init ---
+  const params = new URLSearchParams(window.location.search);
+  const seedParam = params.get("seed");
+  if (seedParam) {
+    initPuzzle(isNaN(Number(seedParam)) ? seedParam : Number(seedParam));
+  } else {
+    newGame();
+  }
+})();
+</script>
+</body>
+</html>
