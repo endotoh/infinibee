@@ -584,6 +584,8 @@ header h1 {
     <div class="hints-twoletter">
       <h3>Two letter list:</h3>
       <div class="hints-twoletter-list" id="hints-twoletter"></div>
+      <button id="btn-three-letter" style="margin-top: 0.75rem; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.8rem; font-size: 0.8rem; color: var(--muted); cursor: pointer;">Even more...</button>
+      <div class="hints-twoletter-list" id="hints-threeletter" style="display: none; margin-top: 0.5rem;"></div>
     </div>
   </div>
 </div>
@@ -1253,6 +1255,31 @@ header h1 {
       return `<span>${prefix} - ${t.total}</span>`;
     }).join("");
 
+    // Three letter list
+    const threes = {};
+    for (const w of words) {
+      const prefix = w.slice(0, 3).toUpperCase();
+      if (!threes[prefix]) threes[prefix] = { total: 0, found: 0 };
+      threes[prefix].total++;
+      if (found.has(w)) threes[prefix].found++;
+    }
+    const threesSorted = Object.keys(threes).sort();
+    const threeLetterEl = document.getElementById("hints-threeletter");
+    threeLetterEl.innerHTML = threesSorted.map(prefix => {
+      const t = threes[prefix];
+      if (t.found === t.total) {
+        return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
+      } else if (t.found > 0) {
+        return `<span>${prefix} - ${t.found}/${t.total}</span>`;
+      }
+      return `<span>${prefix} - ${t.total}</span>`;
+    }).join("");
+
+    // Reset toggle state
+    threeLetterEl.style.display = "none";
+    const btn = document.getElementById("btn-three-letter");
+    btn.textContent = "Even more...";
+
     document.getElementById("hints-modal").classList.add("active");
   }
 
@@ -1294,6 +1321,17 @@ header h1 {
   document.getElementById("hints-modal").addEventListener("click", hideHintsModal);
   document.getElementById("hints-close").addEventListener("click", () =>
     document.getElementById("hints-modal").classList.remove("active"));
+  document.getElementById("btn-three-letter").addEventListener("click", () => {
+    const el = document.getElementById("hints-threeletter");
+    const btn = document.getElementById("btn-three-letter");
+    if (el.style.display === "none") {
+      el.style.display = "";
+      btn.textContent = "Less...";
+    } else {
+      el.style.display = "none";
+      btn.textContent = "Even more...";
+    }
+  });
   document.getElementById("btn-giveup").addEventListener("click", showGiveUpModal);
   document.getElementById("btn-giveup-cancel").addEventListener("click", () =>
     document.getElementById("giveup-modal").classList.remove("active"));
