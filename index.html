@@ -653,6 +653,16 @@ header h1 {
   // --- Word lookup (Set for O(1)) ---
   const WORD_SET = new Set(WORDS);
 
+  // --- Pre-index words by unique letter bitmask for fast puzzle filtering ---
+  const CHAR_BIT = {};
+  for (let i = 0; i < 26; i++) CHAR_BIT[String.fromCharCode(97 + i)] = 1 << i;
+  const WORD_MASKS = new Uint32Array(WORDS.length);
+  for (let i = 0; i < WORDS.length; i++) {
+    let mask = 0;
+    for (const ch of WORDS[i]) mask |= CHAR_BIT[ch];
+    WORD_MASKS[i] = mask;
+  }
+
   // --- Sort mode ---
   let sortMode = "order"; // "order" or "alpha"
 
@@ -809,15 +819,16 @@ header h1 {
       [outer[i], outer[j]] = [outer[j], outer[i]];
     }
 
-    // Find all valid words for this puzzle
+    // Find all valid words for this puzzle (bitmask filter)
     const letterSet = new Set(letters);
-    const validWords = WORDS.filter(w => {
-      if (!w.includes(centerLetter)) return false;
-      for (const ch of w) {
-        if (!letterSet.has(ch)) return false;
-      }
-      return true;
-    });
+    let puzzleMask = 0;
+    for (const l of letters) puzzleMask |= CHAR_BIT[l];
+    const centerBit = CHAR_BIT[centerLetter];
+    const validWords = [];
+    for (let i = 0; i < WORDS.length; i++) {
+      const m = WORD_MASKS[i];
+      if ((m & centerBit) && (m & ~puzzleMask) === 0) validWords.push(WORDS[i]);
+    }
 
     // Calculate max score
     let maxScore = 0;
@@ -867,8 +878,13 @@ header h1 {
   }
 
   // --- Rendering ---
+  let lastHiveKey = "";
   function render() {
-    renderHive();
+    const hiveKey = state.letters.join("");
+    if (hiveKey !== lastHiveKey) {
+      renderHive();
+      lastHiveKey = hiveKey;
+    }
     renderInput();
     renderScore();
     renderFoundWords();
