@@ -615,15 +615,19 @@ header h1 {
       </div>
       <div id="hints-grid-container"></div>
       <div class="hints-twoletter">
-        <h3>Two letter list:</h3>
+        <h3 id="hints-prefix-heading">Unsolved two letter list:</h3>
         <div class="hints-twoletter-list" id="hints-twoletter"></div>
         <button id="btn-three-letter" class="hints-more-btn">Even more...</button>
+        <h3 id="hints-three-heading" style="display: none; margin-top: 0.75rem;">Unsolved three letter list:</h3>
         <div class="hints-twoletter-list" id="hints-threeletter" style="display: none; margin-top: 0.5rem;"></div>
         <button id="btn-four-letter" class="hints-more-btn" style="display: none;">Even more (4!?!)</button>
+        <h3 id="hints-four-heading" style="display: none; margin-top: 0.75rem;">Unsolved four letter list:</h3>
         <div class="hints-twoletter-list" id="hints-fourletter" style="display: none; margin-top: 0.5rem;"></div>
         <button id="btn-five-letter" class="hints-more-btn" style="display: none;">Even more (5 — come on!?!?)</button>
+        <h3 id="hints-five-heading" style="display: none; margin-top: 0.75rem;">Unsolved five letter list:</h3>
         <div class="hints-twoletter-list" id="hints-fiveletter" style="display: none; margin-top: 0.5rem;"></div>
         <button id="btn-six-letter" class="hints-more-btn" style="display: none;">Even more (6 — seriously!?!?!?)</button>
+        <h3 id="hints-six-heading" style="display: none; margin-top: 0.75rem;">Unsolved six letter list:</h3>
         <div class="hints-twoletter-list" id="hints-sixletter" style="display: none; margin-top: 0.5rem;"></div>
       </div>
     </div>
@@ -1291,7 +1295,7 @@ header h1 {
 
     document.getElementById("hints-grid-container").innerHTML = html;
 
-    // Prefix lists (2, 3, 4, 5 letters)
+    // Prefix lists — only show unsolved prefixes
     function buildPrefixList(n, elId) {
       const counts = {};
       for (const w of words) {
@@ -1302,11 +1306,10 @@ header h1 {
         if (found.has(w)) counts[prefix].found++;
       }
       const sorted = Object.keys(counts).sort();
-      document.getElementById(elId).innerHTML = sorted.map(prefix => {
+      const unsolved = sorted.filter(p => counts[p].found < counts[p].total);
+      document.getElementById(elId).innerHTML = unsolved.map(prefix => {
         const t = counts[prefix];
-        if (t.found === t.total) {
-          return `<span class="complete">${prefix} - ${t.found}/${t.total}</span>`;
-        } else if (t.found > 0) {
+        if (t.found > 0) {
           return `<span>${prefix} - ${t.found}/${t.total}</span>`;
         }
         return `<span>${prefix} - ${t.total}</span>`;
@@ -1320,14 +1323,13 @@ header h1 {
     buildPrefixList(6, "hints-sixletter");
 
     // Reset toggle state
-    document.getElementById("hints-threeletter").style.display = "none";
-    document.getElementById("hints-fourletter").style.display = "none";
-    document.getElementById("hints-fiveletter").style.display = "none";
-    document.getElementById("hints-sixletter").style.display = "none";
+    const prefixEls = ["three", "four", "five", "six"];
+    for (const p of prefixEls) {
+      document.getElementById(`hints-${p}letter`).style.display = "none";
+      document.getElementById(`hints-${p}-heading`).style.display = "none";
+      document.getElementById(`btn-${p}-letter`).style.display = "none";
+    }
     document.getElementById("btn-three-letter").style.display = "";
-    document.getElementById("btn-four-letter").style.display = "none";
-    document.getElementById("btn-five-letter").style.display = "none";
-    document.getElementById("btn-six-letter").style.display = "none";
 
     document.getElementById("hints-modal").classList.add("active");
   }
@@ -1371,21 +1373,25 @@ header h1 {
   document.getElementById("hints-close").addEventListener("click", () =>
     document.getElementById("hints-modal").classList.remove("active"));
   document.getElementById("btn-three-letter").addEventListener("click", () => {
+    document.getElementById("hints-three-heading").style.display = "";
     document.getElementById("hints-threeletter").style.display = "";
     document.getElementById("btn-three-letter").style.display = "none";
     document.getElementById("btn-four-letter").style.display = "";
   });
   document.getElementById("btn-four-letter").addEventListener("click", () => {
+    document.getElementById("hints-four-heading").style.display = "";
     document.getElementById("hints-fourletter").style.display = "";
     document.getElementById("btn-four-letter").style.display = "none";
     document.getElementById("btn-five-letter").style.display = "";
   });
   document.getElementById("btn-five-letter").addEventListener("click", () => {
+    document.getElementById("hints-five-heading").style.display = "";
     document.getElementById("hints-fiveletter").style.display = "";
     document.getElementById("btn-five-letter").style.display = "none";
     document.getElementById("btn-six-letter").style.display = "";
   });
   document.getElementById("btn-six-letter").addEventListener("click", () => {
+    document.getElementById("hints-six-heading").style.display = "";
     document.getElementById("hints-sixletter").style.display = "";
     document.getElementById("btn-six-letter").style.display = "none";
   });
