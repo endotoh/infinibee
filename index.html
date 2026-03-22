@@ -1064,27 +1064,15 @@ header h1 {
 
   function confirmGiveUp() {
     document.getElementById("giveup-modal").classList.remove("active");
-    if (pendingNewGame) {
-      pendingNewGame = false;
-      const seed = Math.floor(Math.random() * 2147483647);
-      initPuzzle(seed);
-    } else {
-      state.givenUp = true;
-      saveProgress();
-      render();
-    }
+    state.givenUp = true;
+    saveProgress();
+    render();
   }
 
   function newGame() {
-    if (state.foundWords.length > 0 && !geniusReached && !state.givenUp) {
-      pendingNewGame = true;
-      document.getElementById("giveup-modal").classList.add("active");
-      return;
-    }
     const seed = Math.floor(Math.random() * 2147483647);
     initPuzzle(seed);
   }
-  let pendingNewGame = false;
 
   // --- Genius celebration ---
   let geniusReached = false;
@@ -1307,10 +1295,8 @@ header h1 {
   document.getElementById("hints-close").addEventListener("click", () =>
     document.getElementById("hints-modal").classList.remove("active"));
   document.getElementById("btn-giveup").addEventListener("click", showGiveUpModal);
-  document.getElementById("btn-giveup-cancel").addEventListener("click", () => {
-    pendingNewGame = false;
-    document.getElementById("giveup-modal").classList.remove("active");
-  });
+  document.getElementById("btn-giveup-cancel").addEventListener("click", () =>
+    document.getElementById("giveup-modal").classList.remove("active"));
   document.getElementById("btn-giveup-confirm").addEventListener("click", confirmGiveUp);
   document.getElementById("giveup-modal").addEventListener("click", (e) => {
     if (e.target === document.getElementById("giveup-modal"))
