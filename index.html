@@ -335,6 +335,25 @@ header h1 {
   max-width: 480px;
   text-align: left;
   position: relative;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.hints-modal .modal-close {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-self: flex-end;
+  margin: 0.75rem 0.75rem 0 0;
+}
+.hints-modal h2 {
+  padding: 0 2rem;
+}
+.hints-modal .hints-body {
+  overflow-y: auto;
+  padding: 0 2rem 2rem;
+  flex: 1;
 }
 .hints-summary {
   text-align: center;
@@ -589,22 +608,24 @@ header h1 {
   <div class="modal">
     <button class="modal-close" id="hints-close">&times;</button>
     <h2>Hints</h2>
-    <div class="hints-summary">
-      <div class="hints-letters" id="hints-letters"></div>
-      <div class="hints-stats" id="hints-stats"></div>
-    </div>
-    <div id="hints-grid-container"></div>
-    <div class="hints-twoletter">
-      <h3>Two letter list:</h3>
-      <div class="hints-twoletter-list" id="hints-twoletter"></div>
-      <button id="btn-three-letter" class="hints-more-btn">Even more...</button>
-      <div class="hints-twoletter-list" id="hints-threeletter" style="display: none; margin-top: 0.5rem;"></div>
-      <button id="btn-four-letter" class="hints-more-btn" style="display: none;">Even more (4!?!)</button>
-      <div class="hints-twoletter-list" id="hints-fourletter" style="display: none; margin-top: 0.5rem;"></div>
-      <button id="btn-five-letter" class="hints-more-btn" style="display: none;">Even more (5 — come on!?!?)</button>
-      <div class="hints-twoletter-list" id="hints-fiveletter" style="display: none; margin-top: 0.5rem;"></div>
-      <button id="btn-six-letter" class="hints-more-btn" style="display: none;">Even more (6 — seriously!?!?!?)</button>
-      <div class="hints-twoletter-list" id="hints-sixletter" style="display: none; margin-top: 0.5rem;"></div>
+    <div class="hints-body">
+      <div class="hints-summary">
+        <div class="hints-letters" id="hints-letters"></div>
+        <div class="hints-stats" id="hints-stats"></div>
+      </div>
+      <div id="hints-grid-container"></div>
+      <div class="hints-twoletter">
+        <h3>Two letter list:</h3>
+        <div class="hints-twoletter-list" id="hints-twoletter"></div>
+        <button id="btn-three-letter" class="hints-more-btn">Even more...</button>
+        <div class="hints-twoletter-list" id="hints-threeletter" style="display: none; margin-top: 0.5rem;"></div>
+        <button id="btn-four-letter" class="hints-more-btn" style="display: none;">Even more (4!?!)</button>
+        <div class="hints-twoletter-list" id="hints-fourletter" style="display: none; margin-top: 0.5rem;"></div>
+        <button id="btn-five-letter" class="hints-more-btn" style="display: none;">Even more (5 — come on!?!?)</button>
+        <div class="hints-twoletter-list" id="hints-fiveletter" style="display: none; margin-top: 0.5rem;"></div>
+        <button id="btn-six-letter" class="hints-more-btn" style="display: none;">Even more (6 — seriously!?!?!?)</button>
+        <div class="hints-twoletter-list" id="hints-sixletter" style="display: none; margin-top: 0.5rem;"></div>
+      </div>
     </div>
   </div>
 </div>
