@@ -1416,6 +1416,8 @@ header h1 {
     }
     if (e.key === "?") {
       showHintsModal();
+    } else if (e.key === ".") {
+      shuffleLetters();
     } else if (e.key === "Enter") {
       submitWord();
     } else if (e.key === "Backspace") {
