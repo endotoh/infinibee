@@ -349,6 +349,13 @@ virion
 vitro
 vivo
 
+# Chemistry / biology
+cannabinol
+ribose
+ricin
+telome
+toluol
+
 # Medical conditions
 alkalosis
 alopecia
